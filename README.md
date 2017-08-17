@@ -49,7 +49,6 @@ breatheView.setBgColor(int color)
 	```
 	circleBreatheView.setDrawPoint(Point point)
 	circleBreatheView.setDrawPoint(int x,int y)
-
 	```
 	
 * RectBreatheView
