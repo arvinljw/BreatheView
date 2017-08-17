@@ -78,6 +78,69 @@ overridePendingTransition(0, 0);
 
 可以自己继承BreatheView，参照RectBreatheView或者CircleBreatheView实现自己的自定义转场动画。
 
+## 原理
+
+
+```
+mMode = new PorterDuffXfermode(PorterDuff.Mode.DST_OUT);
+
+@Override
+protected void onDraw(Canvas canvas) {
+    super.onDraw(canvas);
+
+    int saveCount = canvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
+    drawBg(canvas);
+    mPaintSrc.setXfermode(mMode);
+    drawBreathe(canvas);
+    mPaintSrc.setXfermode(null);
+    canvas.restoreToCount(saveCount);
+}
+```
+
+如果知道Xfermode，那么一看上边的代码应该就明白一大半了，当然这只是其中重要的一步，还有一步就是使用属性动画，改变绘制BreatheView部分的大小，例如
+
+```
+public void setScale(int scale) {
+    this.mScale = scale;
+    postInvalidate();
+}
+
+public int getScale() {
+    return mScale;
+}
+
+protected void startScaleAnim(int start, int end) {
+    final boolean isOpen = start < end;
+    ObjectAnimator scale = ObjectAnimator.ofInt(this, "scale", start, end).setDuration(mDuration);
+    scale.setInterpolator(new LinearInterpolator());
+    scale.addListener(new AnimatorListenerAdapter() {
+        @Override
+        public void onAnimationStart(Animator animation) {
+            setVisibility(View.VISIBLE);
+        }
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            canClose = isOpen;
+            if (mAnimEndListener != null) {
+                mAnimEndListener.onAnimEnd(isOpen);
+            }
+        }
+    });
+    scale.start();
+}
+
+protected void drawBg(Canvas canvas) {
+    canvas.drawRect(mBgRect, mBgPaint);
+}
+
+@Override
+protected void drawBreathe(Canvas canvas) {
+    canvas.drawCircle(mDrawPoint.x, mDrawPoint.y, mScale, mPaintBreathe);
+}
+```
+
+核心代码就是这些，最重要就是通过属性动画，改变绘制的breathe部分的大小，并在onDraw时使用Xfermode实现。
+
 ## License
 
 ```
