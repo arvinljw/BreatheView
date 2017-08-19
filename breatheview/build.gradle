@@ -34,4 +34,4 @@ publish {
     licences = ["Apache-2.0"]
 }
 
-group='net.arvin.view'
+group='com.github.arvinljw'
