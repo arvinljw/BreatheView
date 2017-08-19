@@ -13,8 +13,23 @@
 
 ### 引用：
 
+在根目录级的build.gradle中添加
+
 ```
-compile 'net.arvin.view:breatheview:1.0.0'
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+
+再在要使用的项目级的build.gradle中添加：
+
+```
+dependencies {
+	compile 'com.github.arvinljw:BreatheView:v1.0.0'
+}
 ```
 
 ### api介绍

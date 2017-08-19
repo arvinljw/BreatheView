@@ -39,7 +39,6 @@ public class RectBreatheView extends BreatheView {
         mDuration = 400;
     }
 
-    @Keep
     public void setScale(int scale) {
         this.mScale = scale;
 
