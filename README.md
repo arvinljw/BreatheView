@@ -28,7 +28,7 @@ allprojects {
 
 ```
 dependencies {
-	compile 'com.github.arvinljw:BreatheView:v1.0.0'
+	compile 'com.github.arvinljw:BreatheView:v1.0.1'
 }
 ```
 
