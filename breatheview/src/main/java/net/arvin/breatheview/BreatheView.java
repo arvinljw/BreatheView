@@ -13,6 +13,8 @@ import android.graphics.RectF;
 import android.support.annotation.Keep;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
@@ -21,7 +23,7 @@ import android.view.animation.LinearInterpolator;
  * Function：
  * Desc：
  */
-public abstract class BreatheView extends View {
+public abstract class BreatheView extends SurfaceView implements SurfaceHolder.Callback {
     public static final int ANIM_DEFAULT_DURATION = 500;
     public static final String BG_DEFAULT_COLOR = "#cccccc";
 
@@ -42,6 +44,10 @@ public abstract class BreatheView extends View {
 
     protected IAnimEndListener mAnimEndListener;
     protected boolean canClose;
+
+    private SurfaceHolder mHolder;
+    private Canvas mCanvas;
+    private boolean mIsDrawing;
 
     public BreatheView(Context context) {
         this(context, null);
@@ -75,18 +81,44 @@ public abstract class BreatheView extends View {
         mScreenHeight = getScreenHeight();
 
         setClickable(true);
+
+        mHolder = getHolder();
+        mHolder.addCallback(this);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        this.setKeepScreenOn(true);
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    public void surfaceCreated(SurfaceHolder holder) {
+        mIsDrawing = true;
+    }
 
-        int saveCount = canvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
-        drawBg(canvas);
-        mPaintBreathe.setXfermode(mMode);
-        drawBreathe(canvas);
-        mPaintBreathe.setXfermode(null);
-        canvas.restoreToCount(saveCount);
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mIsDrawing = false;
+    }
+
+    private void draw() {
+        try {
+            mCanvas = mHolder.lockCanvas();
+            int saveCount = mCanvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
+            drawBg(mCanvas);
+            mPaintBreathe.setXfermode(mMode);
+            drawBreathe(mCanvas);
+            mPaintBreathe.setXfermode(null);
+            mCanvas.restoreToCount(saveCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (mCanvas != null) {
+                mHolder.unlockCanvasAndPost(mCanvas);
+            }
+        }
     }
 
     protected void drawBg(Canvas canvas) {
@@ -95,7 +127,9 @@ public abstract class BreatheView extends View {
 
     public void setScale(int scale) {
         this.mScale = scale;
-        postInvalidate();
+        while (mIsDrawing) {
+            draw();
+        }
     }
 
     public int getScale() {
